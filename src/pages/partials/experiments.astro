@@ -1,0 +1,159 @@
+---
+---
+<section id="experiments" class="view-section active"
+    x-data="{
+        experimentsData: $persist([]).as('lwo_dashboard_experiments'),
+        searchQuery: '',
+        statusFilter: 'All',
+        
+        isModalOpen: false,
+        editingId: null,
+        formData: { tried: '', notes: '', outcome: '', next: '', tags: '', status: 'Planned' },
+        
+        openModal(expId = null) {
+            if (expId) {
+                const item = this.experimentsData.find(x => x.id === expId);
+                this.formData = { ...item };
+                this.editingId = item.id;
+            } else {
+                this.formData = { tried: '', notes: '', outcome: '', next: '', tags: '', status: 'Planned' };
+                this.editingId = null;
+            }
+            this.isModalOpen = true;
+        },
+        
+        closeModal() {
+            this.isModalOpen = false;
+        },
+        
+        saveExperiment() {
+            if (!this.formData.tried) return;
+            
+            if (this.editingId) {
+                const idx = this.experimentsData.findIndex(x => x.id === this.editingId);
+                this.experimentsData[idx] = { ...this.formData, id: this.editingId, date: this.experimentsData[idx].date };
+            } else {
+                const newExp = { ...this.formData, id: '_' + Math.random().toString(36).substr(2, 9), date: new Date().toLocaleString() };
+                this.experimentsData.push(newExp);
+            }
+            this.closeModal();
+        },
+        
+        deleteExperiment(id) {
+            if (confirm('Delete this experiment record?')) {
+                this.experimentsData = this.experimentsData.filter(x => x.id !== id);
+            }
+        },
+        
+        get filteredExperiments() {
+            let filtered = this.experimentsData.filter(x => {
+                const query = this.searchQuery.toLowerCase();
+                const matchSearch = x.tried.toLowerCase().includes(query) ||
+                    (x.tags && x.tags.toLowerCase().includes(query));
+                const matchStatus = this.statusFilter === 'All' || x.status === this.statusFilter;
+                return matchSearch && matchStatus;
+            });
+            // Show newest first
+            return filtered.slice().reverse();
+        }
+    }">
+
+    <div class="section-header flex-between">
+        <h2>Experiment Log</h2>
+        <button class="btn-primary" @click="openModal()">+ Add Experiment</button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <input type="text" x-model="searchQuery" class="search-input" placeholder="Search experiments...">
+        <select x-model="statusFilter" class="filter-select">
+            <option value="All">All Status</option>
+            <option value="Planned">Planned</option>
+            <option value="Running">Running</option>
+            <option value="Done">Done</option>
+        </select>
+    </div>
+
+    <!-- Items Grid -->
+    <div id="experiments-container" class="items-grid empty-state-container">
+        
+        <template x-if="experimentsData.length === 0">
+            <div class="empty-state">No design experiments recorded. Log your design changes and tests here.</div>
+        </template>
+        
+        <template x-if="experimentsData.length > 0 && filteredExperiments.length === 0">
+            <div class="empty-state">No matching items.</div>
+        </template>
+
+        <template x-for="x in filteredExperiments" :key="x.id">
+            <div class="item-card">
+                <div class="flex-between mb-sm" style="flex-direction: row;">
+                    <select class="status-badge status-select" :class="'status-' + x.status.toLowerCase()" x-model="x.status">
+                        <option value="Planned">Planned</option>
+                        <option value="Running">Running</option>
+                        <option value="Done">Done</option>
+                    </select>
+                    <div class="text-sm text-subtle" x-text="x.date"></div>
+                </div>
+                
+                <h4 class="mt-sm mb-sm" x-text="x.tried"></h4>
+                
+                <template x-if="x.notes">
+                    <div>
+                        <!-- simple check if it looks like an image URL -->
+                        <template x-if="x.notes.match(/\.(jpeg|jpg|gif|png)$/i) || x.notes.startsWith('data:image')">
+                            <img :src="x.notes" class="img-preview" alt="Preview" @error="$el.outerHTML='<p class=\'text-sm text-secondary\'>'+x.notes+'</p>'">
+                        </template>
+                        <template x-if="!(x.notes.match(/\.(jpeg|jpg|gif|png)$/i) || x.notes.startsWith('data:image'))">
+                            <p class="text-sm text-secondary mt-sm"><strong>Notes/Files:</strong> <br><span x-text="x.notes"></span></p>
+                        </template>
+                    </div>
+                </template>
+                
+                <template x-if="x.outcome">
+                    <p class="text-sm text-secondary mt-md"><strong>Outcome:</strong><br> <span x-text="x.outcome"></span></p>
+                </template>
+                <template x-if="x.next">
+                    <p class="text-sm text-secondary mt-sm"><strong>Next Steps:</strong><br> <span x-text="x.next"></span></p>
+                </template>
+                
+                <div class="mt-md">
+                    <template x-for="tag in (x.tags ? x.tags.split(',').map(s=>s.trim()).filter(Boolean) : [])">
+                        <span class="tag-badge" x-text="tag"></span>
+                    </template>
+                </div>
+                
+                <div class="item-actions">
+                    <button class="edit-btn" @click="openModal(x.id)">Edit</button>
+                    <button class="del-btn" @click="deleteExperiment(x.id)">Del</button>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" :class="isModalOpen ? '' : 'hidden'" x-show="isModalOpen" style="display: none;">
+        <div class="modal-content" @click.away="closeModal()">
+            <h2 x-text="editingId ? 'Edit Experiment Log' : 'Add Experiment'"></h2>
+            <form @submit.prevent="saveExperiment">
+                <div class="form-group"><label>What I tried *</label><textarea x-model="formData.tried" rows="3" required></textarea></div>
+                <div class="form-group"><label>Notes or Screenshot Link</label><textarea x-model="formData.notes" rows="2" placeholder="Paste image URL to preview, or write notes"></textarea></div>
+                <div class="form-group"><label>Outcome</label><textarea x-model="formData.outcome" rows="2"></textarea></div>
+                <div class="form-group"><label>Next Step</label><input type="text" x-model="formData.next"></div>
+                <div class="form-group"><label>Tags (comma separated)</label><input type="text" x-model="formData.tags"></div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select x-model="formData.status" required>
+                        <option value="Planned">Planned</option>
+                        <option value="Running">Running</option>
+                        <option value="Done">Done</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" @click="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Experiment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

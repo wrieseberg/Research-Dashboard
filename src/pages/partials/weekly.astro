@@ -1,0 +1,66 @@
+---
+---
+<section id="weekly" class="view-section active"
+    x-data="{
+        weeklyData: $persist([
+            { id: 'w5', week: 5, title: 'Week 5', goals: 'Research foundations:\nCognitive Load Theory and Learning Through Structure.\nDraft Design Principles for Calm Learning.', checklist: [], notes: '' },
+            { id: 'w6', week: 6, title: 'Week 6', goals: 'Attention and information overload research.\nIdentify overwhelm triggers and create pacing map.', checklist: [], notes: '' },
+            { id: 'w7', week: 7, title: 'Week 7', goals: 'Emotion and learning research.\nCreate emotional journey map.\nBuild first low-fidelity layout.', checklist: [], notes: '' },
+            { id: 'w8', week: 8, title: 'Week 8', goals: 'Systems thinking and repetition research.\nRefine structure into coherent learning system.', checklist: [], notes: '' },
+            { id: 'w9', week: 9, title: 'Week 9', goals: 'Usability heuristics and ethical design.\nCreate guided breathing/grounding element.\nRecord test media and embed in prototype.', checklist: [], notes: '' },
+            { id: 'w10', week: 10, title: 'Week 10', goals: 'Reflection and reduction.\nReview page for clarity.\nRemove unnecessary elements.\nOrganize Milanote board.', checklist: [], notes: '' },
+            { id: 'w11', week: 11, title: 'Week 11', goals: 'Final polish.\nFinalize submission materials.', checklist: [], notes: '' }
+        ]).as('lwo_dashboard_weekly'),
+        
+        newTaskInputs: {},
+        
+        addTask(weekIdx, weekId) {
+            const input = this.newTaskInputs[weekId] || '';
+            if (input.trim() !== '') {
+                this.weeklyData[weekIdx].checklist.push({ text: input.trim(), done: false });
+                this.newTaskInputs[weekId] = '';
+            }
+        }
+    }">
+
+    <div class="section-header">
+        <h2>Weekly Plan</h2>
+        <p class="text-subtle">Milestones from Week 5 to Week 11</p>
+    </div>
+
+    <div id="weekly-container" class="weekly-grid">
+        <template x-for="(w, wIdx) in weeklyData" :key="w.id">
+            <div class="card weekly-card">
+                <div class="week-left">
+                    <h2 x-text="w.title"></h2>
+                    <div class="prompt-text-block mb-md text-secondary" style="font-size: 0.95em;">
+                        <strong>Milestones & Focus:</strong><br>
+                         <!-- Replace newlines with <br> inside an x-html binding -->
+                        <span x-html="w.goals.replace(/\n/g, '<br>')"></span>
+                    </div>
+                    
+                    <h4 class="mt-md">Task Checklist</h4>
+                    <div class="checklist-container mt-sm">
+                        <template x-for="(item, idx) in w.checklist" :key="idx">
+                            <div class="checklist-item" :class="item.done ? 'checked' : ''">
+                                <input type="checkbox" x-model="item.done">
+                                <span class="text text-secondary" x-text="item.text"></span>
+                                <button class="list-del-btn cl-del" @click="w.checklist.splice(idx, 1)">✕</button>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <div class="add-item-form mt-sm">
+                        <!-- Use the weekId as key for inputs object -->
+                        <input type="text" class="cl-input" x-model="newTaskInputs[w.id]" @keydown.enter="addTask(wIdx, w.id)" placeholder="Add a task...">
+                        <button class="btn-secondary cl-add-btn" @click="addTask(wIdx, w.id)">Add</button>
+                    </div>
+                </div>
+                <div class="week-right">
+                    <h4>Notes & Reflections</h4>
+                    <textarea class="auto-save week-notes" rows="8" placeholder="Log progress, thoughts, or reflections for this week..." x-model="w.notes"></textarea>
+                </div>
+            </div>
+        </template>
+    </div>
+</section>

@@ -1,0 +1,135 @@
+---
+---
+<section id="prompts" class="view-section active"
+    x-data="{
+        promptsData: $persist([]).as('lwo_dashboard_prompts'),
+        searchQuery: '',
+        
+        isModalOpen: false,
+        editingId: null,
+        formData: { model: 'ChatGPT', tags: '', text: '', summary: '', next: '' },
+        
+        openModal(promptId = null) {
+            if (promptId) {
+                const item = this.promptsData.find(p => p.id === promptId);
+                this.formData = { ...item };
+                this.editingId = item.id;
+            } else {
+                this.formData = { model: 'ChatGPT', tags: '', text: '', summary: '', next: '' };
+                this.editingId = null;
+            }
+            this.isModalOpen = true;
+        },
+        
+        closeModal() {
+            this.isModalOpen = false;
+        },
+        
+        savePrompt() {
+            if (!this.formData.text) return;
+            
+            if (this.editingId) {
+                const idx = this.promptsData.findIndex(p => p.id === this.editingId);
+                this.promptsData[idx] = { ...this.formData, id: this.editingId, date: this.promptsData[idx].date };
+            } else {
+                const newPrompt = { ...this.formData, id: '_' + Math.random().toString(36).substr(2, 9), date: new Date().toLocaleString() };
+                this.promptsData.push(newPrompt);
+            }
+            this.closeModal();
+        },
+        
+        deletePrompt(id) {
+            if (confirm('Delete this prompt log?')) {
+                this.promptsData = this.promptsData.filter(p => p.id !== id);
+            }
+        },
+        
+        get filteredPrompts() {
+            let filtered = this.promptsData.filter(p => {
+                const query = this.searchQuery.toLowerCase();
+                return p.text.toLowerCase().includes(query) ||
+                    (p.summary && p.summary.toLowerCase().includes(query)) ||
+                    (p.tags && p.tags.toLowerCase().includes(query));
+            });
+            // Show newest first
+            return filtered.slice().reverse();
+        }
+    }">
+
+    <div class="section-header flex-between">
+        <h2>Prompt Log</h2>
+        <button class="btn-primary" @click="openModal()">+ Add Prompt</button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <input type="text" x-model="searchQuery" class="search-input" placeholder="Search prompts...">
+    </div>
+
+    <!-- Items List -->
+    <div id="prompts-container" class="items-list empty-state-container">
+        
+        <template x-if="promptsData.length === 0">
+            <div class="empty-state">No AI prompts logged yet. Track your generation process here.</div>
+        </template>
+        
+        <template x-if="promptsData.length > 0 && filteredPrompts.length === 0">
+            <div class="empty-state">No matching items.</div>
+        </template>
+
+        <template x-for="p in filteredPrompts" :key="p.id">
+            <div class="item-card">
+                <div class="flex-between text-subtle text-sm mb-sm pb-sm" style="border-bottom: 1px solid var(--border); flex-direction: row;">
+                    <span x-text="p.model + ' • ' + p.date"></span>
+                    <div class="item-actions" style="position:static; margin-left: auto;">
+                        <button class="edit-btn" @click="openModal(p.id)">Edit</button>
+                        <button class="del-btn" @click="deletePrompt(p.id)">Del</button>
+                    </div>
+                </div>
+                
+                <div class="mb-sm text-secondary"><strong>Prompt Input:</strong></div>
+                <div class="prompt-text-block font-mono text-secondary mb-md" x-html="p.text.replace(/\n/g, '<br>')"></div>
+                
+                <template x-if="p.summary">
+                    <div class="mb-sm text-secondary"><strong>Output Summary:</strong><br> <span x-text="p.summary"></span></div>
+                </template>
+                <template x-if="p.next">
+                    <div class="mb-sm text-secondary"><strong>What Changed Next:</strong><br> <span x-text="p.next"></span></div>
+                </template>
+                
+                <div class="mt-sm">
+                    <template x-for="tag in (p.tags ? p.tags.split(',').map(s=>s.trim()).filter(Boolean) : [])">
+                        <span class="tag-badge" x-text="tag"></span>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" :class="isModalOpen ? '' : 'hidden'" x-show="isModalOpen" style="display: none;">
+        <div class="modal-content" @click.away="closeModal()">
+            <h2 x-text="editingId ? 'Edit Prompt Log' : 'Add Prompt Log'"></h2>
+            <form @submit.prevent="savePrompt">
+                <div class="form-group">
+                    <label>Model Used</label>
+                    <select x-model="formData.model" required>
+                        <option value="ChatGPT">ChatGPT</option>
+                        <option value="Claude">Claude</option>
+                        <option value="Gemini">Gemini</option>
+                        <option value="AntiGravity">AntiGravity</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Tags (comma separated)</label><input type="text" x-model="formData.tags"></div>
+                <div class="form-group"><label>Prompt Text *</label><textarea x-model="formData.text" rows="4" class="font-mono" required></textarea></div>
+                <div class="form-group"><label>Output Summary</label><textarea x-model="formData.summary" rows="2"></textarea></div>
+                <div class="form-group"><label>What I changed next</label><input type="text" x-model="formData.next"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" @click="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Prompt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

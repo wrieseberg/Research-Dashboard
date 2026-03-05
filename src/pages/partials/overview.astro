@@ -1,0 +1,89 @@
+---
+// This is an HTML fragment fetched by HTMX! 
+// It is pure declarative UI managed by Alpine.js natively preserving LocalStorage.
+---
+
+<section id="overview" class="view-section active" 
+    x-data="{ 
+        overviewData: $persist({
+            focus: 'I am exploring how structured, paced learning environments can reduce overwhelm and support confidence and focus for anxious learners.',
+            researchQuestion: 'How do structured, paced learning environments affect emotional response and follow-through?',
+            goals: ['Reduce stress and support confidence', 'Uncover triggers for information overwhelm', 'Design scalable patterns for pacing and clarity'],
+            principles: ['Pacing', 'Clarity', 'Reduction', 'Sequencing'],
+            today: 'Reviewing materials for the project.'
+        }).as('lwo_dashboard_overview'),
+        
+        newGoalInput: '',
+        newPrincipleInput: '',
+        
+        addGoal() {
+            if (this.newGoalInput.trim() !== '') {
+                this.overviewData.goals.push(this.newGoalInput.trim());
+                this.newGoalInput = '';
+            }
+        },
+        addPrinciple() {
+            if (this.newPrincipleInput.trim() !== '') {
+                this.overviewData.principles.push(this.newPrincipleInput.trim());
+                this.newPrincipleInput = '';
+            }
+        }
+    }">
+    
+    <div class="section-header">
+        <h2>Project Overview</h2>
+    </div>
+
+    <div class="card">
+        <h3>Focus Statement</h3>
+        <textarea class="auto-save" rows="3" x-model="overviewData.focus"></textarea>
+    </div>
+
+    <div class="card">
+        <h3>Research Question</h3>
+        <textarea class="auto-save" rows="2" x-model="overviewData.researchQuestion"></textarea>
+    </div>
+
+    <div class="grid-2-col">
+        <div class="card">
+            <h3>Project Goals</h3>
+            <ul id="goals-list" class="editable-list">
+                <template x-for="(goal, idx) in overviewData.goals" :key="idx">
+                    <li>
+                        <span class="value text-secondary" x-text="goal"></span>
+                        <div class="actions">
+                            <button class="list-del-btn" @click="overviewData.goals.splice(idx, 1)">✕</button>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+            <div class="add-item-form mt-sm">
+                <!-- Use @keydown.enter for convenience! -->
+                <input type="text" x-model="newGoalInput" @keydown.enter="addGoal" placeholder="Add a new goal...">
+                <button @click="addGoal" class="btn-secondary">Add</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Key Design Principles</h3>
+            <div id="principles-list" class="tag-container">
+                <template x-for="(principle, idx) in overviewData.principles" :key="idx">
+                    <div class="tag-principle">
+                        <span x-text="principle"></span>
+                        <span class="tag-del-btn" @click="overviewData.principles.splice(idx, 1)">✕</span>
+                    </div>
+                </template>
+            </div>
+            <div class="add-item-form mt-sm">
+                <input type="text" x-model="newPrincipleInput" @keydown.enter="addPrinciple" placeholder="Add principle...">
+                <button @click="addPrinciple" class="btn-secondary">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card highlight-card">
+        <h3>Today's Focus</h3>
+        <p class="text-sm text-subtle">What I'm doing next.</p>
+        <textarea class="auto-save" rows="4" x-model="overviewData.today"></textarea>
+    </div>
+</section>

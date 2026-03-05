@@ -1,0 +1,159 @@
+---
+---
+<section id="readings" class="view-section active"
+    x-data="{
+        readingsData: $persist([]).as('lwo_dashboard_readings'),
+        searchQuery: '',
+        statusFilter: 'All',
+        sortOrder: 'newest',
+        
+        isModalOpen: false,
+        editingId: null,
+        formData: { title: '', author: '', link: '', tags: '', status: 'Not started', notes: '' },
+        
+        openModal(readingId = null) {
+            if (readingId) {
+                const item = this.readingsData.find(r => r.id === readingId);
+                this.formData = { ...item };
+                this.editingId = item.id;
+            } else {
+                this.formData = { title: '', author: '', link: '', tags: '', status: 'Not started', notes: '' };
+                this.editingId = null;
+            }
+            this.isModalOpen = true;
+        },
+        
+        closeModal() {
+            this.isModalOpen = false;
+        },
+        
+        saveReading() {
+            if (!this.formData.title) return;
+            
+            if (this.editingId) {
+                const idx = this.readingsData.findIndex(r => r.id === this.editingId);
+                this.readingsData[idx] = { ...this.formData, id: this.editingId, createdAt: this.readingsData[idx].createdAt };
+            } else {
+                const newReading = { ...this.formData, id: '_' + Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() };
+                this.readingsData.push(newReading);
+            }
+            this.closeModal();
+            // Show toast visually (you could add a global Alpine dispatch event here)
+        },
+        
+        deleteReading(id) {
+            if (confirm('Delete this reading?')) {
+                this.readingsData = this.readingsData.filter(r => r.id !== id);
+            }
+        },
+        
+        get filteredReadings() {
+            let filtered = this.readingsData.filter(r => {
+                const query = this.searchQuery.toLowerCase();
+                const matchSearch = r.title.toLowerCase().includes(query) ||
+                    (r.author && r.author.toLowerCase().includes(query)) ||
+                    (r.tags && r.tags.toLowerCase().includes(query)) ||
+                    (r.notes && r.notes.toLowerCase().includes(query));
+                const matchStatus = this.statusFilter === 'All' || r.status === this.statusFilter;
+                return matchSearch && matchStatus;
+            });
+            
+            if (this.sortOrder === 'newest') filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+            if (this.sortOrder === 'title') filtered.sort((a,b) => a.title.localeCompare(b.title));
+            if (this.sortOrder === 'status') filtered.sort((a,b) => a.status.localeCompare(b.status));
+            
+            return filtered;
+        }
+    }">
+
+    <div class="section-header flex-between">
+        <h2>Reading Library</h2>
+        <button class="btn-primary" @click="openModal()">+ Add Reading</button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <input type="text" x-model="searchQuery" class="search-input" placeholder="Search...">
+        <select x-model="statusFilter" class="filter-select">
+            <option value="All">All Status</option>
+            <option value="Not started">Not started</option>
+            <option value="In progress">In progress</option>
+            <option value="Completed">Completed</option>
+        </select>
+        <select x-model="sortOrder" class="filter-select">
+            <option value="newest">Newest First</option>
+            <option value="title">Title A-Z</option>
+            <option value="status">Status</option>
+        </select>
+    </div>
+
+    <!-- Items Grid -->
+    <div id="readings-container" class="items-grid empty-state-container">
+        
+        <template x-if="readingsData.length === 0">
+            <div class="empty-state">No readings yet. Add your first source to begin collecting.</div>
+        </template>
+        
+        <template x-if="readingsData.length > 0 && filteredReadings.length === 0">
+            <div class="empty-state">No matching items.</div>
+        </template>
+
+        <template x-for="r in filteredReadings" :key="r.id">
+            <div class="item-card">
+                <select class="status-badge status-select" :class="'status-' + r.status.toLowerCase().replace(' ', '-')" x-model="r.status">
+                    <option value="Not started">Not started</option>
+                    <option value="In progress">In progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+                <h4 class="mt-sm" x-text="r.title"></h4>
+                <div class="text-sm text-secondary" x-text="r.author"></div>
+                
+                <template x-if="r.link">
+                    <p class="text-sm mt-sm">🔗 <a :href="r.link" target="_blank">External Link</a></p>
+                </template>
+                
+                <div class="mt-sm tag-container">
+                    <!-- Splitting comma tags -->
+                    <template x-for="tag in (r.tags ? r.tags.split(',').map(s=>s.trim()).filter(Boolean) : [])">
+                        <span class="tag-badge" x-text="tag"></span>
+                    </template>
+                </div>
+                
+                <template x-if="r.notes">
+                    <p class="text-sm text-subtle mt-sm"><strong>Notes:</strong><br><span x-text="r.notes.length > 120 ? r.notes.substring(0, 120) + '...' : r.notes"></span></p>
+                </template>
+
+                <div class="item-actions">
+                    <button class="edit-btn" @click="openModal(r.id)">Edit</button>
+                    <button class="del-btn" @click="deleteReading(r.id)">Del</button>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Add/Edit Modal (Inline for this component) -->
+    <div class="modal-overlay" :class="isModalOpen ? '' : 'hidden'" x-show="isModalOpen" style="display: none;">
+        <div class="modal-content" @click.away="closeModal()">
+            <h2 x-text="editingId ? 'Edit Reading' : 'Add Reading'"></h2>
+            <form @submit.prevent="saveReading">
+                <div class="form-group"><label>Title *</label><input type="text" x-model="formData.title" required></div>
+                <div class="form-group"><label>Author</label><input type="text" x-model="formData.author"></div>
+                <div class="form-group"><label>Link</label><input type="url" x-model="formData.link"></div>
+                <div class="form-group"><label>Tags (comma separated)</label><input type="text" x-model="formData.tags"></div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select x-model="formData.status">
+                        <option value="Not started">Not started</option>
+                        <option value="In progress">In progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Notes</label><textarea x-model="formData.notes" rows="4"></textarea></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary close-modal" @click="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Reading</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

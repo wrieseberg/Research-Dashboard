@@ -1,0 +1,85 @@
+---
+---
+<section id="links" class="view-section active"
+    x-data="{
+        linksData: $persist([
+            { id: '_' + Math.random().toString(36).substr(2, 9), title: 'Milanote board', url: 'https://milanote.com' },
+            { id: '_' + Math.random().toString(36).substr(2, 9), title: 'GitHub repository', url: 'https://github.com' }
+        ]).as('lwo_dashboard_links'),
+        
+        isModalOpen: false,
+        editingId: null,
+        formData: { title: '', url: '' },
+        
+        openModal(linkId = null) {
+            if (linkId) {
+                const item = this.linksData.find(l => l.id === linkId);
+                this.formData = { ...item };
+                this.editingId = item.id;
+            } else {
+                this.formData = { title: '', url: '' };
+                this.editingId = null;
+            }
+            this.isModalOpen = true;
+        },
+        
+        closeModal() {
+            this.isModalOpen = false;
+        },
+        
+        saveLink() {
+            if (!this.formData.title || !this.formData.url) return;
+            
+            if (this.editingId) {
+                const idx = this.linksData.findIndex(l => l.id === this.editingId);
+                this.linksData[idx] = { ...this.formData, id: this.editingId };
+            } else {
+                const newLink = { ...this.formData, id: '_' + Math.random().toString(36).substr(2, 9) };
+                this.linksData.push(newLink);
+            }
+            this.closeModal();
+        },
+        
+        deleteLink(id) {
+            if (confirm('Delete this link?')) {
+                this.linksData = this.linksData.filter(l => l.id !== id);
+            }
+        }
+    }">
+
+    <div class="section-header flex-between">
+        <h2>Links & Resources</h2>
+        <button class="btn-primary" @click="openModal()">+ Add Link</button>
+    </div>
+
+    <div id="links-container" class="links-list">
+        <template x-if="linksData.length === 0">
+            <div class="empty-state">No quick links configured. Add important resources here.</div>
+        </template>
+        
+        <template x-for="l in linksData" :key="l.id">
+            <div class="link-card">
+                <a :href="l.url" target="_blank" x-text="'↗ ' + l.title"></a>
+                <div class="actions">
+                    <button class="list-del-btn link-edit" @click="openModal(l.id)">Edit</button>
+                    <button class="list-del-btn link-del" @click="deleteLink(l.id)">✕</button>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" :class="isModalOpen ? '' : 'hidden'" x-show="isModalOpen" style="display: none;">
+        <div class="modal-content" @click.away="closeModal()">
+            <h2 x-text="editingId ? 'Edit Link' : 'Add Link'"></h2>
+            <form @submit.prevent="saveLink">
+                <div class="form-group"><label>Title *</label><input type="text" x-model="formData.title" required></div>
+                <div class="form-group"><label>URL *</label><input type="url" x-model="formData.url" required></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" @click="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

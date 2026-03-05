@@ -1,0 +1,18 @@
+{
+  "name": "dashboard-aha",
+  "version": "1.0.0",
+  "description": "Refactored Dashboard using the AHA Stack (Astro, HTMX, Alpine)",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@alpinejs/persist": "^3.13.3",
+    "@astrojs/alpinejs": "^0.4.0",
+    "alpinejs": "^3.13.3",
+    "astro": "^4.5.10"
+  }
+}

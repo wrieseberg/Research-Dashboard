@@ -1,0 +1,90 @@
+---
+---
+<section id="settings" class="view-section active"
+    x-data="{
+        exportData() {
+            const data = {
+                _backupDate: new Date().toISOString(),
+                overview: JSON.parse(localStorage.getItem('lwo_dashboard_overview') || '{}'),
+                readings: JSON.parse(localStorage.getItem('lwo_dashboard_readings') || '[]'),
+                weekly: JSON.parse(localStorage.getItem('lwo_dashboard_weekly') || '[]'),
+                prompts: JSON.parse(localStorage.getItem('lwo_dashboard_prompts') || '[]'),
+                experiments: JSON.parse(localStorage.getItem('lwo_dashboard_experiments') || '[]'),
+                links: JSON.parse(localStorage.getItem('lwo_dashboard_links') || '[]')
+            };
+            const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = 'LWO_Dashboard_Backup.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            alert('Dashboard data exported successfully.');
+        },
+        
+        importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (confirm('Are you sure you want to OVERWRITE current dashboard data with this backup file?')) {
+                        if (json.overview) localStorage.setItem('lwo_dashboard_overview', JSON.stringify(json.overview));
+                        if (json.readings) localStorage.setItem('lwo_dashboard_readings', JSON.stringify(json.readings));
+                        if (json.weekly) localStorage.setItem('lwo_dashboard_weekly', JSON.stringify(json.weekly));
+                        if (json.prompts) localStorage.setItem('lwo_dashboard_prompts', JSON.stringify(json.prompts));
+                        if (json.experiments) localStorage.setItem('lwo_dashboard_experiments', JSON.stringify(json.experiments));
+                        if (json.links) localStorage.setItem('lwo_dashboard_links', JSON.stringify(json.links));
+                        
+                        alert('Data restored successfully. Refreshing dashboard.');
+                        location.reload();
+                    }
+                } catch (err) {
+                    alert('Invalid JSON file or format not recognized.');
+                }
+            };
+            reader.readAsText(file);
+        },
+        
+        clearData() {
+            if (confirm('DANGER: This will permanently delete all local dashboard data. Are you absolutely sure?')) {
+                if (confirm('Final confirmation. Clear ALL data?')) {
+                    const keys = [
+                        'lwo_dashboard_overview', 'lwo_dashboard_readings', 
+                        'lwo_dashboard_weekly', 'lwo_dashboard_prompts', 
+                        'lwo_dashboard_experiments', 'lwo_dashboard_links'
+                    ];
+                    keys.forEach(k => localStorage.removeItem(k));
+                    alert('All data wiped. Refreshing to default state.');
+                    location.reload();
+                }
+            }
+        }
+    }">
+
+    <div class="section-header">
+        <h2>Utilities</h2>
+    </div>
+
+    <div class="card">
+        <h3>Data Management</h3>
+        <p class="text-subtle">Back up or restore your dashboard data.</p>
+
+        <div class="settings-actions mt-md">
+            <button class="btn-secondary" @click="exportData()">Export Data (JSON)</button>
+
+            <div class="import-wrapper pt-sm mt-sm">
+                <label for="import-file" class="btn-secondary" style="cursor: pointer;">Import Dashboard JSON backup</label>
+                <input type="file" id="import-file" accept=".json" style="display: none;" @change="importData($event)">
+            </div>
+        </div>
+
+        <div class="danger-zone mt-lg pt-md" style="border-top: 1px solid var(--border-color);">
+            <h4 class="text-danger">Danger Zone</h4>
+            <p class="text-subtle">This action cannot be undone. All local data will be permanently deleted.</p>
+            <button class="btn-danger mt-sm" @click="clearData()">Clear All Data</button>
+        </div>
+    </div>
+</section>

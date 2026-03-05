@@ -1,0 +1,77 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Learning Without Overwhelm">
+    <div id="app-container" x-data="{ activeTab: 'overview' }">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Command Center</h2>
+            </div>
+            <nav id="main-nav">
+                <!-- We use HTMX to fetch the partials from Astro endpoints. 
+                     Alpine.js handles the active class state. -->
+                <button class="nav-btn" 
+                    hx-get="/partials/overview" 
+                    hx-target="#content-area" 
+                    :class="{'active': activeTab === 'overview'}" 
+                    @click="activeTab = 'overview'">Overview</button>
+                    
+                <button class="nav-btn" 
+                    hx-get="/partials/readings" 
+                    hx-target="#content-area" 
+                    :class="{'active': activeTab === 'readings'}" 
+                    @click="activeTab = 'readings'">Reading Library</button>
+                    
+                <button class="nav-btn" 
+                    hx-get="/partials/weekly" 
+                    hx-target="#content-area" 
+                    :class="{'active': activeTab === 'weekly'}" 
+                    @click="activeTab = 'weekly'">Weekly Plan</button>
+                    
+                <button class="nav-btn" 
+                    hx-get="/partials/prompts" 
+                    hx-target="#content-area" 
+                    :class="{'active': activeTab === 'prompts'}" 
+                    @click="activeTab = 'prompts'">Prompt Log</button>
+                    
+                <button class="nav-btn" 
+                    hx-get="/partials/experiments" 
+                    hx-target="#content-area" 
+                    :class="{'active': activeTab === 'experiments'}" 
+                    @click="activeTab = 'experiments'">Experiment Log</button>
+                    
+                <button class="nav-btn" 
+                    hx-get="/partials/links" 
+                    hx-target="#content-area" 
+                    :class="{'active': activeTab === 'links'}" 
+                    @click="activeTab = 'links'">Links</button>
+                    
+                <button class="nav-btn" 
+                    hx-get="/partials/settings" 
+                    hx-target="#content-area" 
+                    :class="{'active': activeTab === 'settings'}" 
+                    @click="activeTab = 'settings'">Utilities</button>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Sticky Header -->
+            <header class="sticky-header">
+                <div class="header-titles">
+                    <h1>Learning Without Overwhelm</h1>
+                    <p class="tagline">Where learning feels manageable. Built with AHA Stack.</p>
+                </div>
+                <!-- Optional stats could go here, managed by global Alpine store if needed -->
+            </header>
+
+            <!-- Sections Container -->
+            <!-- We trigger a load right away to fetch the initial tab -->
+            <div id="content-area" hx-get="/partials/overview" hx-trigger="load">
+                <div class="p-4">Loading application...</div>
+            </div>
+        </main>
+    </div>
+</Layout>
