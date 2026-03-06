@@ -631,9 +631,12 @@ select.status-badge:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-select.status-badge option {
-    background: #1a1625;
-    color: var(--text-primary);
+select.status-badge option,
+.filter-select option,
+select option {
+    background: #e8e8f0;
+    color: #1a1625;
+    font-weight: 600;
 }
 
 /* Updated Status Colors */
