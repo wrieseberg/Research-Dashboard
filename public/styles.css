@@ -644,30 +644,30 @@ select.status-not-started,
 select.status-planned,
 .status-not-started,
 .status-planned {
-    color: #000000;
-    background-color: #d8d8e0;
-    border-color: #b0b0bb;
-    font-weight: 600;
+    color: #000000 !important;
+    background-color: #d8d8e0 !important;
+    border-color: #b0b0bb !important;
+    font-weight: 700 !important;
 }
 
 select.status-in-progress,
 select.status-running,
 .status-in-progress,
 .status-running {
-    color: #000000;
-    background-color: #a8e6cf;
-    border-color: #8cc3af;
-    font-weight: 600;
+    color: #000000 !important;
+    background-color: #a8e6cf !important;
+    border-color: #8cc3af !important;
+    font-weight: 700 !important;
 }
 
 select.status-completed,
 select.status-done,
 .status-completed,
 .status-done {
-    color: #000000;
-    background-color: #d1bdf2;
-    border-color: #b09ece;
-    font-weight: 600;
+    color: #000000 !important;
+    background-color: #d1bdf2 !important;
+    border-color: #b09ece !important;
+    font-weight: 700 !important;
 }
 
 
