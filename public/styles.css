@@ -644,7 +644,7 @@ select.status-not-started,
 select.status-planned,
 .status-not-started,
 .status-planned {
-    color: #1a1625;
+    color: #000000;
     background-color: #d8d8e0;
     border-color: #b0b0bb;
     font-weight: 600;
@@ -654,7 +654,7 @@ select.status-in-progress,
 select.status-running,
 .status-in-progress,
 .status-running {
-    color: #0b2b25;
+    color: #000000;
     background-color: #a8e6cf;
     border-color: #8cc3af;
     font-weight: 600;
@@ -664,7 +664,7 @@ select.status-completed,
 select.status-done,
 .status-completed,
 .status-done {
-    color: #2b1b54;
+    color: #000000;
     background-color: #d1bdf2;
     border-color: #b09ece;
     font-weight: 600;
